@@ -1,4 +1,0 @@
-[0m[[0m[31merror[0m] [0m[0m/Users/marcushayward/Projects/evolutionary-bugs/src/main/scala/Main.scala:15:29: not found: value -[0m
-[0m[[0m[31merror[0m] [0m[0m        case (map.dimension - 1) => println(piece.pieceType)[0m
-[0m[[0m[31merror[0m] [0m[0m                            ^[0m
-[0m[[0m[31merror[0m] [0m[0mone error found[0m
