@@ -1,5 +1,4 @@
-case class Map(pieces: List[Piece], dimension: Int)
-
+case class World(pieces: List[Piece], dimension: Int)
 case class Piece(pieceType: PieceType, coordinates: (Int, Int))
 
 sealed trait PieceType {
@@ -7,6 +6,13 @@ sealed trait PieceType {
     case Food => "F"
     case Water => "W"
     case Empty => "_"
+    case Player => "P"
+  }
+
+  def imagePath: String = this match {
+    case Food => "assets/food.png"
+    case Water => "assets/water.png"
+    case Empty => "assets/earth.png"
     case Player => "P"
   }
 }
@@ -19,10 +25,10 @@ case object Empty extends PieceType
 
 case object Player extends PieceType
 
-object Map {
+object World {
   val random = scala.util.Random
 
-  def generateRandom(dimension: Int) = Map(
+  def generateRandom(dimension: Int) = World(
     for {
       x <- List.range(0, dimension)
       y <- List.range(0, dimension)
