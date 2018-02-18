@@ -1,6 +1,7 @@
 import javax.swing.ImageIcon
 
 import scala.swing._
+import scala.swing.event._
 
 object Main extends App {
   val dimension = 40
@@ -21,15 +22,22 @@ object Main extends App {
     )
   }
 
-  val ui = new UI
-  ui.renderWorld(world)
-  ui.visible = true
+  def drawWorld(world: World): Unit = {
+    val ui = new UI
+    ui.renderWorld(world)
+    ui.visible = true
+  }
+
+  val player = Piece(Player, (0, 0))
+  val worldWithPlayer = world.withPlayer(player)
+  drawWorld(worldWithPlayer)
 }
 
 class UI extends MainFrame {
-  title = "GUI Program #1"
+  title = "Evolutionary Bugs"
   preferredSize = new Dimension(20 * Main.dimension, 20 * Main.dimension)
-  def renderWorld(world: World) = {
+
+  def renderWorld(world: World): Unit = {
     val components = world.pieces.map {
       piece => {
         new Label {
@@ -39,8 +47,25 @@ class UI extends MainFrame {
     }
 
     contents = new GridPanel(Main.dimension, Main.dimension) {
+      focusable = true
+      listenTo(keys)
+      reactions += {
+        case KeyTyped(_, c, _, _) => c match {
+          case 'w' =>
+            val newWorld = world.movePlayer(world, Up)
+            Main.drawWorld(newWorld)
+          case 's' =>
+            val newWorld = world.movePlayer(world, Down)
+            Main.drawWorld(newWorld)
+          case 'a' =>
+            val newWorld = world.movePlayer(world, Left)
+            Main.drawWorld(newWorld)
+          case 'd' =>
+            val newWorld = world.movePlayer(world, Right)
+            Main.drawWorld(newWorld)
+        }
+      }
       contents.appendAll(components)
     }
   }
 }
-
