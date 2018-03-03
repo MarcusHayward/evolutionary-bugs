@@ -6,9 +6,9 @@ import scala.swing.event._
 object Main extends App {
   val dimension = 40
   val world = World.generateRandom(dimension)
+  val ui = new UI
 
   def drawWorld(world: World): Unit = {
-    val ui = new UI
     ui.renderWorld(world)
     ui.visible = true
   }
@@ -21,8 +21,8 @@ object Main extends App {
     val ai = Ai("fake")
     val move = ai.generateMove(worldWithPlayer)
     val newWorld = worldWithPlayer.movePlayer(move)
-    drawWorld(newWorld)
-    Thread.sleep(1000)
+    ui.renderWorld(newWorld)
+    Thread.sleep(10)
   }
 }
 
