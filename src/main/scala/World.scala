@@ -18,8 +18,8 @@ case class World(pieces: List[Piece], dimension: Int) {
     )
   }
 
-  def movePlayer(world: World, move: Move): World = {
-    val player = world.pieces.find {
+  def movePlayer(move: Move): World = {
+    val player = this.pieces.find {
       piece =>
         piece.pieceType match {
           case Player => true
@@ -28,17 +28,17 @@ case class World(pieces: List[Piece], dimension: Int) {
     }
 
     move match {
-      case Up if player.get.coordinates._1 == 0 => return world
-      case Down if player.get.coordinates._1 == world.dimension - 1 => return world
-      case Left if player.get.coordinates._2 == 0 => return world
-      case Right if player.get.coordinates._2 == world.dimension - 1 => return world
+      case Up if player.get.coordinates._1 == 0 => return this
+      case Down if player.get.coordinates._1 == this.dimension - 1 => return this
+      case Left if player.get.coordinates._2 == 0 => return this
+      case Right if player.get.coordinates._2 == this.dimension - 1 => return this
       case _ =>
     }
 
     val worldWithNoPlayer = new World(
       true,
       for {
-        piece <- world.pieces
+        piece <- this.pieces
       } yield {
         piece.pieceType match {
           case Player => Piece(Empty, (piece.coordinates._1, piece.coordinates._2))
@@ -63,7 +63,7 @@ case class World(pieces: List[Piece], dimension: Int) {
     new World(
       true,
       movedPlayer :: worldWithEmptyPlayerSpace,
-      world.dimension
+      this.dimension
     )
   }
 }
