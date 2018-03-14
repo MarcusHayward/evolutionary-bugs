@@ -19,15 +19,12 @@ case class World(pieces: List[Piece], dimension: Int) {
   }
 
   def movePlayer(move: Move, player: Piece): (World, Piece) = {
-    val piecesWithPlayerSwappedForAnEmptyPiece: List[Piece] =
-      for {
-        piece <- this.pieces
-      } yield {
-        piece.pieceType match {
-          case Player(_, _) => Piece(Empty, (piece.coordinates._1, piece.coordinates._2))
-          case _ => piece
-        }
+    val piecesWithPlayerSwappedForAnEmptyPiece: List[Piece] = pieces.map { piece: Piece =>
+      piece.pieceType match {
+        case Player(_, _) => Piece(Empty, (piece.coordinates._1, piece.coordinates._2))
+        case _ => piece
       }
+    }
 
     val movedPlayer: Piece = move match {
       case Up if player.coordinates._1 == 0 => player
