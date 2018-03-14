@@ -1,10 +1,11 @@
 import javax.swing.ImageIcon
 
 import scala.swing._
-import scala.swing.event._
 
 object Main extends App {
   val dimension = 40
+  val startingHealth = 100
+  val startingThirst = 100
   val world = World.generateRandom(dimension)
   val ui = new UI
 
@@ -13,17 +14,21 @@ object Main extends App {
     ui.visible = true
   }
 
-  val player = Piece(Player, (0, 0))
+  val player = Piece(Player(100, 100), (0, 0))
   val worldWithPlayer = world.withPlayer(player)
   drawWorld(worldWithPlayer)
 
-  while (true) {
+  def run(world: World, player: Piece): Unit = {
     val ai = Ai("fake")
     val move = ai.generateMove(worldWithPlayer)
-    val newWorld = worldWithPlayer.movePlayer(move)
-    ui.renderWorld(newWorld)
+    val newWorld: (World, Piece) = worldWithPlayer.movePlayer(move, player)
+    ui.renderWorld(newWorld._1)
     Thread.sleep(10)
+
+    run(newWorld._1, newWorld._2)
   }
+
+  run(worldWithPlayer, player)
 }
 
 class UI extends MainFrame {

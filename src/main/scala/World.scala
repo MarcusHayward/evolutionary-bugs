@@ -18,53 +18,37 @@ case class World(pieces: List[Piece], dimension: Int) {
     )
   }
 
-  def movePlayer(move: Move): World = {
-    val player = this.pieces.find {
-      piece =>
-        piece.pieceType match {
-          case Player => true
-          case _ => false
-        }
-    }
-
-    move match {
-      case Up if player.get.coordinates._1 == 0 => return this
-      case Down if player.get.coordinates._1 == this.dimension - 1 => return this
-      case Left if player.get.coordinates._2 == 0 => return this
-      case Right if player.get.coordinates._2 == this.dimension - 1 => return this
-      case _ =>
-    }
-
-    val worldWithNoPlayer = new World(
-      true,
+  def movePlayer(move: Move, player: Piece): (World, Piece) = {
+    val piecesWithPlayerSwappedForAnEmptyPiece: List[Piece] =
       for {
         piece <- this.pieces
       } yield {
         piece.pieceType match {
-          case Player => Piece(Empty, (piece.coordinates._1, piece.coordinates._2))
+          case Player(_, _) => Piece(Empty, (piece.coordinates._1, piece.coordinates._2))
           case _ => piece
         }
-      },
-      dimension
-    )
+      }
 
-    val movedPlayer = move match {
-      case Up => Piece(Player, (player.get.coordinates._1 - 1, player.get.coordinates._2))
-      case Down => Piece(Player, (player.get.coordinates._1 + 1, player.get.coordinates._2))
-      case Left => Piece(Player, (player.get.coordinates._1, player.get.coordinates._2 - 1))
-      case Right => Piece(Player, (player.get.coordinates._1, player.get.coordinates._2 + 1))
+    val movedPlayer: Piece = move match {
+      case Up if player.coordinates._1 == 0 => player
+      case Down if player.coordinates._1 == this.dimension - 1 => player
+      case Left if player.coordinates._2 == 0 => player
+      case Right if player.coordinates._2 == this.dimension - 1 => player
+      case Up => player.move(-1, 0)
+      case Down => player.move(+1, 0)
+      case Left => player.move(0, -1)
+      case Right => player.move(0, +1)
     }
 
-    val worldWithEmptyPlayerSpace = worldWithNoPlayer.pieces.filter(piece => piece.coordinates match {
-      case movedPlayer.coordinates => false
-      case _ => true
-    })
+    val worldWithEmptyPlayerSpace: List[Piece] =
+      piecesWithPlayerSwappedForAnEmptyPiece.filterNot((p: Piece) => movedPlayer.coordinates == p.coordinates)
 
-    new World(
+    (new World(
       true,
       movedPlayer :: worldWithEmptyPlayerSpace,
       this.dimension
-    )
+    ),
+      movedPlayer)
   }
 }
 
@@ -78,22 +62,44 @@ case object Left extends Move
 
 case object Right extends Move
 
-
-case class Piece(pieceType: PieceType, coordinates: (Int, Int))
+case class Piece(pieceType: PieceType, coordinates: (Int, Int)) {
+  def move(x: Int, y: Int): Piece = {
+    Piece(pieceType, (coordinates._1 + x, coordinates._2 + y))
+  }
+}
 
 sealed trait PieceType {
   override def toString: String = this match {
     case Food => "F"
     case Water => "W"
     case Empty => "_"
-    case Player => "P"
+    case Player(_, _) => "P"
   }
 
   def imagePath: String = this match {
     case Food => "assets/food.png"
     case Water => "assets/water.png"
     case Empty => "assets/earth.png"
-    case Player => "assets/player.png"
+    case Player(_, _) => "assets/player.png"
+  }
+}
+
+case class Player(health: Int, thirst: Int) extends PieceType {
+  def reduce(): Player = {
+    Player(health - 10, thirst - 10)
+  }
+
+  def eat(): Player = {
+    Player(health + 20, thirst)
+
+  }
+
+  def drink(): Player = {
+    Player(health, thirst + 20)
+  }
+
+  def isDead: Boolean = {
+    health == 0 || thirst == 0
   }
 }
 
@@ -102,8 +108,6 @@ case object Food extends PieceType
 case object Water extends PieceType
 
 case object Empty extends PieceType
-
-case object Player extends PieceType
 
 object World {
   val random: Random.type = scala.util.Random
