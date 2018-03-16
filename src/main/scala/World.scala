@@ -1,3 +1,5 @@
+package bugs
+
 import scala.util.Random
 
 case class World(pieces: List[Piece], dimension: Int) {

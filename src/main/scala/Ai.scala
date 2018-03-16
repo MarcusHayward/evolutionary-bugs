@@ -1,3 +1,5 @@
+package bugs
+
 import scala.util.Random
 
 case class Ai(bitstring: String) {

@@ -1,3 +1,5 @@
+package bugs
+
 import javax.swing.ImageIcon
 
 import scala.swing._
