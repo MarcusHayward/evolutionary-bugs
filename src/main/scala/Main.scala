@@ -12,7 +12,7 @@ object Main extends App {
   val ui = new UI
 
   def drawWorld(world: World, player: Piece, score: Int): Unit = {
-    ui.renderWorld(world, player, score)
+    ui.renderWorld(world, player, score, false)
     ui.visible = true
   }
 
@@ -24,10 +24,14 @@ object Main extends App {
     val ai = Ai("fake")
     val move = ai.generateMove(world)
     val newWorld: (World, Piece) = world.movePlayer(move, player)
-    ui.renderWorld(newWorld._1, newWorld._2, score)
-    Thread.sleep(10)
 
-    run(newWorld._1, newWorld._2, score + 1)
+    val isComplete = newWorld._1.isWorldResourcesConsumed
+    ui.renderWorld(newWorld._1, newWorld._2, score, isComplete)
+
+    if (!isComplete) {
+      run(newWorld._1, newWorld._2, score + 1)
+    }
+    Thread.sleep(10)
   }
 
   run(worldWithPlayer, player, 0)
@@ -35,9 +39,9 @@ object Main extends App {
 
 class UI extends MainFrame {
   title = "Evolutionary Bugs"
-  preferredSize = new Dimension(20 * Main.dimension, 23 * Main.dimension)
+  preferredSize = new Dimension(20 * Main.dimension, 22 * Main.dimension)
 
-  def renderWorld(world: World, player: Piece, score: Int): Unit = {
+  def renderWorld(world: World, player: Piece, score: Int, isComplete: Boolean): Unit = {
     val components = world.pieces.map {
       piece => {
         new Label {
@@ -46,9 +50,13 @@ class UI extends MainFrame {
       }
     }
     val box = new BoxPanel(Orientation.Vertical)
-    box.contents += new Label("Health: 100")
-    box.contents += new Label("Thirst: 100")
-    box.contents += new Label(s"Score: $score")
+
+    if (isComplete) {
+      box.contents += new Label("Simulation Complete!")
+      box.contents += new Label(s"You took: $score turns to complete the game. The lower the better!")
+    } else {
+      box.contents += new Label(s"Turns used: $score")
+    }
 
     val gridPanel = new GridPanel(Main.dimension, Main.dimension)
     gridPanel.contents.appendAll(components)

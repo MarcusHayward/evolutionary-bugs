@@ -49,6 +49,16 @@ case class World(pieces: List[Piece], dimension: Int) {
     ),
       movedPlayer)
   }
+
+  def isWorldResourcesConsumed: Boolean = {
+    val foodAndWater = pieces.filter((piece: Piece) => piece.pieceType match {
+      case Food => true
+      case Water => true
+      case _ => false
+    })
+
+    foodAndWater.isEmpty
+  }
 }
 
 sealed trait Move
