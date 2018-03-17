@@ -59,7 +59,6 @@ class WorldSpec extends FlatSpec with Matchers {
     filteredPlayer shouldBe List(newWorld._2)
   }
 
-
   it should "not move the player up in the world when at the top of the map" in {
     val player: Piece = Piece(Player(100, 100), (0, 5))
     val worldWithPlayer: World = world.withPlayer(player)
@@ -94,5 +93,27 @@ class WorldSpec extends FlatSpec with Matchers {
     val filteredPlayer: List[Piece] = newWorld._1.pieces.filter((piece: Piece) => piece.coordinates == (5, 9))
 
     filteredPlayer shouldBe List(newWorld._2)
+  }
+
+  it should "reduce the player health and thirst levels" in {
+    val player: Player = Player(100, 100)
+    val newPlayer = player.reduce()
+
+    newPlayer.health shouldBe 90
+    newPlayer.thirst shouldBe 90
+  }
+
+  it should "increase the players health when they eat" in {
+    val player: Player = Player(100, 100)
+    val newPlayer = player.eat()
+
+    newPlayer.health shouldBe 120
+  }
+
+  it should "increase the players thirst when they drink" in {
+    val player: Player = Player(100, 100)
+    val newPlayer = player.drink()
+
+    newPlayer.thirst shouldBe 120
   }
 }
