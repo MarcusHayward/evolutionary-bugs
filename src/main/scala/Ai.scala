@@ -5,11 +5,21 @@ import scala.util.Random
 case class Ai(bitstring: String) {
   val random: Random.type = scala.util.Random
   def generateMove(world: World): Move = {
-    random.nextInt(4) match {
-      case 0 => Up
-      case 1 => Down
-      case 2 => Left
-      case 3 => Right
+    val worldAsStringWithVisionOf = world.asStringWithVisionOf(2)
+
+    val indexOfString = bitstring.indexOf(worldAsStringWithVisionOf)
+    if (indexOfString >= 0) {
+      val charAfterRule = bitstring.charAt(indexOfString + worldAsStringWithVisionOf.length)
+
+      charAfterRule match {
+        case 'u' => Up
+        case 'd' => Down
+        case 'l' => Left
+        case 'r' => Right
+        case 'o' => RandomMove
+      }
+    } else {
+      RandomMove
     }
   }
 }
