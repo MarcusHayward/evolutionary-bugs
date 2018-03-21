@@ -16,10 +16,10 @@ case class Ai(bitstring: String) {
         case 'd' => Down
         case 'l' => Left
         case 'r' => Right
-        case 'o' => RandomMove
+        case 'o' => Random.shuffle(List(Up, Down, Left, Right)).head
       }
     } else {
-      RandomMove
+      Random.shuffle(List(Up, Down, Left, Right)).head
     }
   }
 }

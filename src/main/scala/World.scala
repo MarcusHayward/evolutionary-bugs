@@ -71,13 +71,6 @@ case class World(pieces: List[Piece], dimension: Int) {
       case Down => player.move(+1, 0)
       case Left => player.move(0, -1)
       case Right => player.move(0, +1)
-      case RandomMove =>
-        random.nextInt(4) match {
-          case 0 => player.move(-1, 0)
-          case 1 => player.move(+1, 0)
-          case 2 => player.move(0, -1)
-          case 3 => player.move(0, +1)
-        }
     }
 
     val worldWithEmptyPlayerSpace: List[Piece] =
@@ -110,8 +103,6 @@ case object Down extends Move
 case object Left extends Move
 
 case object Right extends Move
-
-case object RandomMove extends Move
 
 case class Piece(pieceType: PieceType, coordinates: (Int, Int)) {
   def move(x: Int, y: Int): Piece = {
