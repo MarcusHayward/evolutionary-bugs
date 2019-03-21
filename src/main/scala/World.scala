@@ -3,6 +3,8 @@ package bugs
 import scala.util.Random
 
 case class World(pieces: List[Piece], dimension: Int) {
+  val movementHealthCost = 5
+  val foodHealth = 20
 
   val random: Random.type = scala.util.Random
 
@@ -73,15 +75,33 @@ case class World(pieces: List[Piece], dimension: Int) {
       case Right => player.move(0, +1)
     }
 
+    val pieceToMoveTo: List[Piece] =
+      piecesWithPlayerSwappedForAnEmptyPiece.filter((p: Piece) => movedPlayer.coordinates == p.coordinates)
+
+    val updatedPlayer = pieceToMoveTo.head.pieceType match {
+      case Food => {
+        movedPlayer.pieceType match {
+          case Player(h, t) => Piece(Player(h + foodHealth, t), movedPlayer.coordinates)
+          case _ => movedPlayer
+        }
+      }
+      case _ => {
+        movedPlayer.pieceType match {
+          case Player(h, t) => Piece(Player(h - movementHealthCost, t), movedPlayer.coordinates)
+          case _ => movedPlayer
+        }
+      }
+  }
+
     val worldWithEmptyPlayerSpace: List[Piece] =
       piecesWithPlayerSwappedForAnEmptyPiece.filterNot((p: Piece) => movedPlayer.coordinates == p.coordinates)
 
     (new World(
       true,
-      movedPlayer :: worldWithEmptyPlayerSpace,
+      updatedPlayer :: worldWithEmptyPlayerSpace,
       this.dimension
     ),
-      movedPlayer)
+      updatedPlayer)
   }
 
   def isWorldResourcesConsumed: Boolean = {
@@ -120,28 +140,11 @@ sealed trait PieceType {
   def imagePath: String = this match {
     case Food => "assets/food.png"
     case Empty => "assets/earth.png"
-    case Player(_, _) => "assets/player.png"
+    case Player(_, _) => "assets/cat.png"
   }
 }
 
-case class Player(health: Int, thirst: Int) extends PieceType {
-  def reduce(): Player = {
-    Player(health - 10, thirst - 10)
-  }
-
-  def eat(): Player = {
-    Player(health + 20, thirst)
-
-  }
-
-  def drink(): Player = {
-    Player(health, thirst + 20)
-  }
-
-  def isDead: Boolean = {
-    health == 0 || thirst == 0
-  }
-}
+case class Player(health: Int, thirst: Int) extends PieceType
 
 case object Food extends PieceType
 

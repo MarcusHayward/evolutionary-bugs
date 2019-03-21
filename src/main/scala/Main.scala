@@ -5,14 +5,14 @@ import javax.swing.ImageIcon
 import scala.swing._
 
 object Main extends App {
-  val dimension = 40
+  val dimension = 30
   val startingHealth = 100
   val startingThirst = 100
   val world = World.generateRandom(dimension)
   val ui = new UI
 
   def drawWorld(world: World, player: Piece, score: Int): Unit = {
-    ui.renderWorld(world, player, score, false)
+    ui.renderWorld(world, player, score, false, false)
     ui.visible = true
   }
 
@@ -26,9 +26,15 @@ object Main extends App {
     val newWorld: (World, Piece) = world.movePlayer(move, player)
 
     val isComplete = newWorld._1.isWorldResourcesConsumed
-    ui.renderWorld(newWorld._1, newWorld._2, score, isComplete)
 
-    if (!isComplete) {
+    val isDead: Boolean = player.pieceType match {
+      case Player(h, t) => h == 0
+      case _ => false
+    }
+
+    ui.renderWorld(newWorld._1, newWorld._2, score, isComplete, isDead)
+
+    if (!isComplete && !isDead) {
       run(newWorld._1, newWorld._2, score + 1)
     }
     Thread.sleep(10)
@@ -41,7 +47,7 @@ class UI extends MainFrame {
   title = "Evolutionary Bugs"
   preferredSize = new Dimension(20 * Main.dimension, 22 * Main.dimension)
 
-  def renderWorld(world: World, player: Piece, score: Int, isComplete: Boolean): Unit = {
+  def renderWorld(world: World, player: Piece, score: Int, isComplete: Boolean, isDead: Boolean): Unit = {
     val components = world.pieces.map {
       piece => {
         new Label {
@@ -53,9 +59,20 @@ class UI extends MainFrame {
 
     if (isComplete) {
       box.contents += new Label("Simulation Complete!")
-      box.contents += new Label(s"You took: $score turns to complete the game. The lower the better!")
+      box.contents += new Label(s"You took: $score turns to complete the game.")
+    } else if (isDead) {
+      box.contents += new Label(s"Simulation Complete! You lasted $score turns!")
+      player.pieceType match {
+        case Player(h, t) => box.contents += new Label(s"Health: $h")
+        case _ =>
+      }
     } else {
       box.contents += new Label(s"Turns used: $score")
+
+      player.pieceType match {
+        case Player(h, t) => box.contents += new Label(s"Health: $h")
+        case _ =>
+      }
     }
 
     val gridPanel = new GridPanel(Main.dimension, Main.dimension)
