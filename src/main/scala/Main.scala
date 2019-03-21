@@ -16,15 +16,15 @@ object Main extends App {
     ui.visible = true
   }
 
-  val player = Piece(Player(startingHealth, startingThirst), (0, 0))
+  val player = Piece(Player(startingHealth, startingThirst), (dimension / 2, dimension / 2))
   val worldWithPlayer = world.withPlayer(player)
   drawWorld(worldWithPlayer, player, 0)
 
   def run(world: World, player: Piece, score: Int): Unit = {
-    val ai = Ai("fake")
+    Thread.sleep(1000)
+    val ai = Ai.fromFile("iteration_1.csv")
     val move = ai.generateMove(world)
     val newWorld: (World, Piece) = world.movePlayer(move, player)
-
     val isComplete = newWorld._1.isWorldResourcesConsumed
 
     val isDead: Boolean = player.pieceType match {
@@ -37,7 +37,6 @@ object Main extends App {
     if (!isComplete && !isDead) {
       run(newWorld._1, newWorld._2, score + 1)
     }
-    Thread.sleep(10)
   }
 
   run(worldWithPlayer, player, 0)
@@ -45,7 +44,7 @@ object Main extends App {
 
 class UI extends MainFrame {
   title = "Evolutionary Bugs"
-  preferredSize = new Dimension(20 * Main.dimension, 22 * Main.dimension)
+  preferredSize = new Dimension(20 * Main.dimension, 24 * Main.dimension)
 
   def renderWorld(world: World, player: Piece, score: Int, isComplete: Boolean, isDead: Boolean): Unit = {
     val components = world.pieces.map {

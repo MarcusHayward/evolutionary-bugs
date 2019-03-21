@@ -91,7 +91,7 @@ case class World(pieces: List[Piece], dimension: Int) {
           case _ => movedPlayer
         }
       }
-  }
+    }
 
     val worldWithEmptyPlayerSpace: List[Piece] =
       piecesWithPlayerSwappedForAnEmptyPiece.filterNot((p: Piece) => movedPlayer.coordinates == p.coordinates)
@@ -165,4 +165,44 @@ object World {
     },
     dimension
   )
+
+  def fromString(string: String, dimension: Int) = {
+    if (dimension * dimension != string.length) {
+      println("Invalid string to generate the world, creating a random one")
+      generateRandom(dimension * dimension)
+    } else {
+      World(
+        getPieces(string.reverse, dimension),
+        dimension
+      )
+    }
+  }
+
+  def getPieces(string: String, dimension: Int): List[Piece] = {
+    def sumAccumulator(remaining: String, x: Int, y: Int, accum: List[Piece]): List[Piece] = {
+
+      val nextPiece: PieceType = remaining.head match {
+        case 'f' => {
+          Food
+        }
+        case default => {
+          Empty
+        }
+      }
+
+      val piecesList = Piece(nextPiece, (x, y)) :: accum
+
+      if (remaining.length == 1) {
+        return piecesList
+      }
+
+      if (x == dimension - 1) {
+        sumAccumulator(remaining.tail, 0, y + 1, piecesList)
+      } else {
+        sumAccumulator(remaining.tail, x + 1, y, piecesList)
+      }
+    }
+
+    sumAccumulator(string, 0, 0, List())
+  }
 }
