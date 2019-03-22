@@ -20,10 +20,10 @@ object Main extends App {
   val worldWithPlayer = world.withPlayer(player)
   drawWorld(worldWithPlayer, player, 0)
 
-  val ai = Ai.random
-  def run(world: World, player: Piece, score: Int): Unit = {
-    Thread.sleep(1000)
-//    val ai = Ai.fromFile("iteration_1.csv")
+
+  def run(ai: Ai, world: World, player: Piece, score: Int, displayUi: Boolean): Int = {
+    //    Thread.sleep(500)
+    //    val ai = Ai.fromFile("iteration_1.csv")
     val move = ai.generateMove(world)
     val newWorld: (World, Piece) = world.movePlayer(move, player)
     val isComplete = newWorld._1.isWorldResourcesConsumed
@@ -33,14 +33,56 @@ object Main extends App {
       case _ => false
     }
 
-    ui.renderWorld(newWorld._1, newWorld._2, score, isComplete, isDead)
+    if (displayUi) {
+      ui.renderWorld(newWorld._1, newWorld._2, score, isComplete, isDead)
+    }
 
     if (!isComplete && !isDead) {
-      run(newWorld._1, newWorld._2, score + 1)
+      run(ai, newWorld._1, newWorld._2, score + 1, displayUi)
+    } else {
+      score
     }
   }
 
-  run(worldWithPlayer, player, 0)
+
+  def getAi(numberOfAi: Int): List[Ai] = {
+    def loop(accum: List[Ai]): List[Ai] = {
+      if (accum.length == numberOfAi) {
+        return accum
+      }
+
+      loop(Ai.random :: accum)
+    }
+
+    loop(List())
+  }
+
+  val ais: List[Ai] = getAi(100)
+
+  def runSimulationForAi(ai: Ai): (Ai, Int) = {
+    val score = run(ai, worldWithPlayer, player, 0, false)
+    (ai, score)
+  }
+
+  def simulate(ais: List[Ai]): List[(Ai, Int)] = {
+    def loop(currentAi: Ai, remainingAis: List[Ai], accum: List[(Ai, Int)]): List[(Ai, Int)] = {
+      if (remainingAis.length == 0) {
+        return accum
+      }
+
+      loop(remainingAis.head, remainingAis.tail, runSimulationForAi(currentAi) :: accum)
+    }
+
+    loop(ais.head, ais.tail, List())
+  }
+
+  val aisWithScores: List[(Ai, Int)] = simulate(ais)
+
+  val aisSortedByScores = scala.util.Sorting.stableSort(aisWithScores, (e1: (Ai, Int), e2: (Ai, Int)) => e1._2 > e2._2)
+
+  for (score <- aisSortedByScores) {
+    println(s"Ai score is: ${score._2}")
+  }
 }
 
 class UI extends MainFrame {

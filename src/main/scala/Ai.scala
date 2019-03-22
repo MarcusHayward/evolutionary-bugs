@@ -58,7 +58,7 @@ object Ai {
   }
 
   def random(): Ai = {
-    val numberOfRules = 10
+    val numberOfRules = 1000
     val lengthOfRule = 25
     val rules: Array[String] = getRandomRules(numberOfRules, lengthOfRule)
     Ai(rules)
