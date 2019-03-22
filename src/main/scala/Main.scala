@@ -57,7 +57,7 @@ object Main extends App {
     loop(List())
   }
 
-  val ais: List[Ai] = getAi(100)
+  val ais: List[Ai] = getAi(1000)
 
   def runSimulationForAi(ai: Ai): (Ai, Int) = {
     val score = run(ai, worldWithPlayer, player, 0, false)
@@ -65,23 +65,105 @@ object Main extends App {
   }
 
   def simulate(ais: List[Ai]): List[(Ai, Int)] = {
-    def loop(currentAi: Ai, remainingAis: List[Ai], accum: List[(Ai, Int)]): List[(Ai, Int)] = {
+    def loop(remainingAis: List[Ai], accum: List[(Ai, Int)]): List[(Ai, Int)] = {
       if (remainingAis.length == 0) {
         return accum
       }
 
-      loop(remainingAis.head, remainingAis.tail, runSimulationForAi(currentAi) :: accum)
+      loop(remainingAis.tail, runSimulationForAi(remainingAis.head) :: accum)
     }
 
-    loop(ais.head, ais.tail, List())
+    loop(ais, List())
   }
 
-  val aisWithScores: List[(Ai, Int)] = simulate(ais)
+  val reproducer = Reproducer()
 
-  val aisSortedByScores = scala.util.Sorting.stableSort(aisWithScores, (e1: (Ai, Int), e2: (Ai, Int)) => e1._2 > e2._2)
 
-  for (score <- aisSortedByScores) {
-    println(s"Ai score is: ${score._2}")
+  val timesToRun = 100
+
+  println("Average,Average of top 10%, Top Score")
+  def iterateGenerations(ais: List[Ai], onGeneration: Int): Int = {
+    if (onGeneration != timesToRun) {
+      val aisWithScores: List[(Ai, Int)] = simulate(ais)
+      return iterateGenerations(reproducer.repoduce(aisWithScores), onGeneration + 1)
+    }
+    println("Simulation complete")
+    return 1
+  }
+
+  iterateGenerations(ais, 0)
+}
+
+case class Reproducer() {
+  val percentageToKeep = 0.1
+
+  def repoduce(ais: List[(Ai, Int)]): List[Ai] = {
+
+    val numberOfAis = ais.length
+    val numberToKeep: Int = (numberOfAis * percentageToKeep).toInt
+    val aisSortedByScores = scala.util.Sorting.stableSort(ais, (e1: (Ai, Int), e2: (Ai, Int)) => e1._2 > e2._2)
+
+    println(s"${getTotalScores(aisSortedByScores) / aisSortedByScores.length}, ${getTotalScores(aisSortedByScores.take(10)) / 10}, ${aisSortedByScores.head._2}")
+
+    def discardBadAis(ais: Array[(Ai, Int)]): List[Ai] = {
+      def loop(currentAi: Ai, remainingAis: Array[(Ai, Int)], accum: List[Ai]): List[Ai] = {
+        if (accum.length == numberToKeep) {
+          return accum
+        }
+
+        loop(remainingAis.head._1, remainingAis.tail, currentAi :: accum)
+      }
+
+      loop(ais.head._1, ais.tail, List())
+    }
+
+    val goodAis = discardBadAis(aisSortedByScores)
+
+    val aisAfterMerge = goodAis
+//  val aisAfterMerge = merge(goodAis)
+
+    aisAfterMerge ::: getNextGeneration(numberOfAis - aisAfterMerge.length)
+  }
+
+  def merge(ais: List[Ai]): List[Ai] = {
+    def loop(currentAi: Ai, nextAi: Ai, remainingAi: List[Ai], accum: List[Ai]): List[Ai] = {
+      if (remainingAi.length == 0) {
+        return accum
+      }
+
+      val currentAiRules = currentAi.rules
+      val nextAiRules = nextAi.rules
+
+      val mergedAi = Ai(currentAiRules.take((currentAiRules.length / 2).toInt) ++ nextAiRules.take((nextAiRules.length / 2).toInt))
+
+      loop(remainingAi.head, remainingAi.tail.head, remainingAi.tail.tail, mergedAi :: accum)
+    }
+
+    loop(ais.head, ais.tail.head, ais.tail.tail, List())
+  }
+
+  def getTotalScores(ais: Array[(Ai, Int)]): Int = {
+    def loop(accum: Int, remainingAis: Array[(Ai, Int)]): Int = {
+      if (remainingAis.length == 0) {
+        return accum
+      }
+
+      loop(accum + remainingAis.head._2, remainingAis.tail)
+    }
+
+    loop(0, ais)
+  }
+
+  def getNextGeneration(amountToGenerate: Int): List[Ai] = {
+    def loop(accum: List[Ai]): List[Ai] = {
+      if (accum.length == amountToGenerate) {
+        return accum
+      }
+
+      loop(Ai.random :: accum)
+    }
+
+    loop(List())
   }
 }
 

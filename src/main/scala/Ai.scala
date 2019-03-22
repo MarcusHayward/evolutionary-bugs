@@ -58,7 +58,7 @@ object Ai {
   }
 
   def random(): Ai = {
-    val numberOfRules = 1000
+    val numberOfRules = 100
     val lengthOfRule = 25
     val rules: Array[String] = getRandomRules(numberOfRules, lengthOfRule)
     Ai(rules)
@@ -77,6 +77,13 @@ object Ai {
   }
 
   def getRandomRule(lengthOfRule: Int): String = {
+
+    val rule = "dddddddddddddddddddddddd"
+
+    val (first, second) = rule.splitAt(Random.shuffle(List.range(0, lengthOfRule)).head)
+
+    return first + 'f' + second + Random.shuffle(List("u", "d", "l", "r")).head
+
     def loop(accum: String): String = {
       if (accum.length == lengthOfRule) {
         return accum
@@ -85,10 +92,10 @@ object Ai {
       if (accum.length == (lengthOfRule - 1) / 2) {
         loop(accum.concat("p"))
       } else {
-        loop(accum.concat(Random.shuffle(List("f", "e", "d")).head))
+        loop(accum.concat(Random.shuffle(List("f", "d")).head))
       }
     }
 
-    loop("")
+    loop("") + Random.shuffle(List("u", "d", "l", "r")).head
   }
 }
