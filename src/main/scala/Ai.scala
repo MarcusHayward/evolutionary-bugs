@@ -7,7 +7,7 @@ case class Ai(rules: Array[String]) {
   val random: Random.type = scala.util.Random
 
   def generateMove(world: World): Move = {
-    val worldAsStringWithVisionOf = world.asStringWithVisionOf(1)
+    val worldAsStringWithVisionOf = world.asStringWithVisionOf(2)
     val charAfterRule = getMatch(worldAsStringWithVisionOf);
 
     charAfterRule match {
@@ -55,5 +55,40 @@ object Ai {
     }
 
     Ai(values.head)
+  }
+
+  def random(): Ai = {
+    val numberOfRules = 10
+    val lengthOfRule = 25
+    val rules: Array[String] = getRandomRules(numberOfRules, lengthOfRule)
+    Ai(rules)
+  }
+
+  def getRandomRules(numberOfRules: Int, lengthOfRule: Int): Array[String] = {
+    def loop(accum: Array[String]): Array[String] = {
+      if (accum.length == numberOfRules) {
+        return accum
+      }
+
+      loop(accum :+ getRandomRule(lengthOfRule))
+    }
+
+    loop(Array())
+  }
+
+  def getRandomRule(lengthOfRule: Int): String = {
+    def loop(accum: String): String = {
+      if (accum.length == lengthOfRule) {
+        return accum
+      }
+
+      if (accum.length == (lengthOfRule - 1) / 2) {
+        loop(accum.concat("p"))
+      } else {
+        loop(accum.concat(Random.shuffle(List("f", "e", "d")).head))
+      }
+    }
+
+    loop("")
   }
 }

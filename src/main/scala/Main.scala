@@ -20,9 +20,10 @@ object Main extends App {
   val worldWithPlayer = world.withPlayer(player)
   drawWorld(worldWithPlayer, player, 0)
 
+  val ai = Ai.random
   def run(world: World, player: Piece, score: Int): Unit = {
     Thread.sleep(1000)
-    val ai = Ai.fromFile("iteration_1.csv")
+//    val ai = Ai.fromFile("iteration_1.csv")
     val move = ai.generateMove(world)
     val newWorld: (World, Piece) = world.movePlayer(move, player)
     val isComplete = newWorld._1.isWorldResourcesConsumed
