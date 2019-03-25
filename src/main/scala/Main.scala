@@ -10,6 +10,7 @@ object Main extends App {
   val startingThirst = 100
   val world = World.generateRandom(dimension)
   val ui = new UI
+  val learning = true
 
   def drawWorld(world: World, player: Piece, score: Int): Unit = {
     ui.renderWorld(world, player, score, false, false)
@@ -20,10 +21,7 @@ object Main extends App {
   val worldWithPlayer = world.withPlayer(player)
   drawWorld(worldWithPlayer, player, 0)
 
-
   def run(ai: Ai, world: World, player: Piece, score: Int, displayUi: Boolean): Int = {
-    //    Thread.sleep(500)
-    //    val ai = Ai.fromFile("iteration_1.csv")
     val move = ai.generateMove(world)
     val newWorld: (World, Piece) = world.movePlayer(move, player)
     val isComplete = newWorld._1.isWorldResourcesConsumed
@@ -35,6 +33,7 @@ object Main extends App {
 
     if (displayUi) {
       ui.renderWorld(newWorld._1, newWorld._2, score, isComplete, isDead)
+      Thread.sleep(100)
     }
 
     if (!isComplete && !isDead) {
@@ -57,10 +56,10 @@ object Main extends App {
     loop(List())
   }
 
-  val ais: List[Ai] = getAi(1000)
+  val ais: List[Ai] = getAi(50)
 
   def runSimulationForAi(ai: Ai): (Ai, Int) = {
-    val score = run(ai, worldWithPlayer, player, 0, false)
+    val score = run(ai, worldWithPlayer, player, 0, !learning)
     (ai, score)
   }
 
@@ -78,8 +77,7 @@ object Main extends App {
 
   val reproducer = Reproducer()
 
-
-  val timesToRun = 100
+  val timesToRun = 1000
 
   println("Average,Average of top 10%, Top Score")
   def iterateGenerations(ais: List[Ai], onGeneration: Int): Int = {
@@ -91,7 +89,11 @@ object Main extends App {
     return 1
   }
 
-  iterateGenerations(ais, 0)
+  if (learning) {
+    iterateGenerations(ais, 0)
+  } else {
+    runSimulationForAi(Ai.fromFile("bad_ai.csv"))
+  }
 }
 
 case class Reproducer() {
@@ -103,11 +105,11 @@ case class Reproducer() {
     val numberToKeep: Int = (numberOfAis * percentageToKeep).toInt
     val aisSortedByScores = scala.util.Sorting.stableSort(ais, (e1: (Ai, Int), e2: (Ai, Int)) => e1._2 > e2._2)
 
-    println(s"${getTotalScores(aisSortedByScores) / aisSortedByScores.length}, ${getTotalScores(aisSortedByScores.take(10)) / 10}, ${aisSortedByScores.head._2}")
+    val averageScore = getTotalScores(aisSortedByScores) / aisSortedByScores.length
 
     def discardBadAis(ais: Array[(Ai, Int)]): List[Ai] = {
       def loop(currentAi: Ai, remainingAis: Array[(Ai, Int)], accum: List[Ai]): List[Ai] = {
-        if (accum.length == numberToKeep) {
+        if (remainingAis.head._2 < averageScore) {
           return accum
         }
 
@@ -120,7 +122,6 @@ case class Reproducer() {
     val goodAis = discardBadAis(aisSortedByScores)
 
     val aisAfterMerge = goodAis
-//  val aisAfterMerge = merge(goodAis)
 
     aisAfterMerge ::: getNextGeneration(numberOfAis - aisAfterMerge.length)
   }

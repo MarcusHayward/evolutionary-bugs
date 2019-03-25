@@ -6,6 +6,13 @@ import scala.util.Random
 case class Ai(rules: Array[String]) {
   val random: Random.type = scala.util.Random
 
+  def asString() = {
+    for (rule <- rules) {
+      print(s"$rule,")
+    }
+    println()
+  }
+
   def generateMove(world: World): Move = {
     val worldAsStringWithVisionOf = world.asStringWithVisionOf(2)
     val charAfterRule = getMatch(worldAsStringWithVisionOf);
